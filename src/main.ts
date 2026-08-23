@@ -33,7 +33,7 @@ console.log('Корзина после очистки:', basket.getItems());
 
 // Покупатель
 const buyer = new Buyer();
-buyer.setData({ payment: 'Безналичная оплата', address: 'Санкт-Петербург, Русановская ул., 20к1' });
+buyer.setData({ payment: 'card', address: 'Санкт-Петербург, Русановская ул., 20к1' });
 console.log('Покупатель — сохранены оплата и адрес:', buyer.getData());
 console.log('Покупатель — ошибки валидации (нет почты и телефона):', buyer.validate());
 buyer.setData({ email: 'test@example.com', phone: '+79999999999' });

@@ -201,8 +201,8 @@ type TBuyerErrors = Partial<Record<keyof IBuyer, string>>;
 
 Поля класса:  
 `payment: TPayment | null = null` - способ оплаты. Пока пользователь его не выбрал, там хранится null.  
-`email: string = ""` - адрес доставки куда везти заказ. 
-`phone: string = ""` - телефон для связи с покупателем. 
+`email: string = ""` - адрес доставки куда везти заказ.
+`phone: string = ""` - телефон для связи с покупателем.
 `address: string = ""` - электронная почта для чеков и уведомлений.
 
 Методы класса:  
