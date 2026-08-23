@@ -12,13 +12,6 @@ export class LarekApi {
   }
 
   postOrder(order: IOrder): Promise<IOrderResult> {
-    if (!order.items || order.items.length === 0) {
-      return Promise.reject(new Error("Корзина не может быть пустой"));
-    }
-    if (order.total < 0) {
-      return Promise.reject(new Error("Некорректная сумма заказа"));
-    }
-
     return this.api.post<IOrderResult>("/order/", order, "POST");
   }
 }

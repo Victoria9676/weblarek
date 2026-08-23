@@ -2,9 +2,9 @@ import { IBuyer, TBuyerErrors, TPayment } from "../../types";
 
 export class Buyer {
   protected payment: TPayment | null = null;
-  protected email: string | null = null;
-  protected phone: string | null = null;
-  protected address: string | null = null;
+  protected email: string = "";
+  protected phone: string = "";
+  protected address: string = "";
 
   //сохранение переданных полей
   setData(data: Partial<IBuyer>): void {
@@ -26,7 +26,7 @@ export class Buyer {
   //возвращение данных о покупателе
   getData(): IBuyer {
     return {
-      payment: this.payment ?? ("Наличная оплата" as TPayment), // или выброси ошибку, если payment обязателен
+      payment: this.payment ?? ("cash" as TPayment), // или выброси ошибку, если payment обязателен
       email: this.email ?? "",
       phone: this.phone ?? "",
       address: this.address ?? "",
@@ -36,9 +36,9 @@ export class Buyer {
   //очистка данных о покупателе
   clear(): void {
     this.payment = null;
-    this.email = null;
-    this.phone = null;
-    this.address = null;  
+    this.email = "";
+    this.phone = "";
+    this.address = "";  
   }
   //проверка данных о покупателе
   validate(): TBuyerErrors {
