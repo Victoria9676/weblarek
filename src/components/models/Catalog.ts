@@ -11,7 +11,7 @@ export class Catalog {
 
   // получение массива товаров из модели
   getProducts(): IProduct[] {
-    return [...this.products];
+    return this.products;
   }
 
   // получение одного товара по id

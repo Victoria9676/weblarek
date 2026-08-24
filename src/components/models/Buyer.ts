@@ -9,16 +9,16 @@ export class Buyer {
   //сохранение переданных полей
   setData(data: Partial<IBuyer>): void {
     // Обновляем только те поля, которые реально переданы
-    if ("payment" in data && data.payment !== undefined) {
+    if (data.payment !== undefined) {
       this.payment = data.payment;
     }
-    if ("email" in data && data.email !== undefined) {
+    if (data.email !== undefined) {
       this.email = data.email;
     }
-    if ("phone" in data && data.phone !== undefined) {
+    if (data.phone !== undefined) {
       this.phone = data.phone;
     }
-    if ("address" in data && data.address !== undefined) {
+    if (data.address !== undefined) {
       this.address = data.address;
     }
   }
@@ -26,10 +26,10 @@ export class Buyer {
   //возвращение данных о покупателе
   getData(): IBuyer {
     return {
-      payment: this.payment ?? ("cash" as TPayment), // или выброси ошибку, если payment обязателен
-      email: this.email ?? "",
-      phone: this.phone ?? "",
-      address: this.address ?? "",
+      payment: this.payment,
+      email: this.email,
+      phone: this.phone,
+      address: this.address,
     };
   }
 
@@ -38,7 +38,7 @@ export class Buyer {
     this.payment = null;
     this.email = "";
     this.phone = "";
-    this.address = "";  
+    this.address = "";
   }
   //проверка данных о покупателе
   validate(): TBuyerErrors {
@@ -46,7 +46,7 @@ export class Buyer {
     if (!this.payment) errors.payment = "Не выбран вид оплаты";
     if (!this.email) errors.email = "Необходимо указать email";
     if (!this.phone) errors.phone = "Необходимо указать телефон";
-    if (!this.address) errors.address = "Необходимо указать адрес доставки";   
+    if (!this.address) errors.address = "Необходимо указать адрес доставки";
     return errors;
   }
 }
