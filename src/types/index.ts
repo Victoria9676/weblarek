@@ -42,3 +42,11 @@ export interface IOrderResult {
   id: string;
   total: number;
 }
+
+export interface ICardActions {
+    onClick: (event: MouseEvent) => void;
+}
+
+export type TCardPreview = Omit<IProduct, 'id'> & { inBasket: boolean };
+
+export type TCardBasket = Pick<IProduct, 'title' | 'price'> & { index: number };
