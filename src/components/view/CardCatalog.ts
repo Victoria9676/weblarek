@@ -27,7 +27,7 @@ export class CardCatalog extends Card<TCardCatalog> {
 
   private bindEvents(): void {
     if (this.isBound) return;
-    container.addEventListener("click", this.handleCardClick);
+    this.container.addEventListener("click", this.handleCardClick);
     this.isBound = true;
   }
 
