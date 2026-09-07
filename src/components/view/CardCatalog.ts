@@ -15,7 +15,10 @@ export class CardCatalog extends Card<TCardCatalog> {
   constructor(container: HTMLElement, actions: ICardActions) {
     super(container);
     this.actions = actions;
-    this.cardCategory = ensureElement<HTMLElement>(".card__category", container);
+    this.cardCategory = ensureElement<HTMLElement>(
+      ".card__category",
+      container,
+    );
     this.cardImage = ensureElement<HTMLImageElement>(".card__image", container);
     this.bindEvents();
   }

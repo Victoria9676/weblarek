@@ -34,13 +34,13 @@ export class Page extends Component<IPageData> {
 
   private bindEvents(): void {
     if (this.isBound) return;
-    this.basketButton.addEventListener('click', this.handleBasketOpen);
+    this.basketButton.addEventListener("click", this.handleBasketOpen);
     this.isBound = true;
   }
 
   public unbind(): void {
     if (!this.isBound) return;
-    this.basketButton.removeEventListener('click', this.handleBasketOpen);
+    this.basketButton.removeEventListener("click", this.handleBasketOpen);
     this.isBound = false;
   }
 

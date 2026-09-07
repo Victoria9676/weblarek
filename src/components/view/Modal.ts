@@ -23,7 +23,10 @@ export class Modal extends Component<IModalData> {
       ".modal__close",
       container,
     );
-    this.modalContent = ensureElement<HTMLElement>(".modal__content", container);
+    this.modalContent = ensureElement<HTMLElement>(
+      ".modal__content",
+      container,
+    );
     this.bindEvents();
   }
 

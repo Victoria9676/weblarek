@@ -12,6 +12,12 @@ export abstract class Card<T> extends Component<T> {
     this.cardPrice = ensureElement<HTMLElement>(".card__price", container);
   }
 
+  setData(data: Partial<T>): void {
+    const d = data as Record<string, unknown>;
+    if (d.title !== undefined) this.title = d.title as string;
+    if (d.price !== undefined) this.price = d.price as number | null;
+  }
+
   set title(value: string) {
     this.cardTitle.textContent = value;
   }

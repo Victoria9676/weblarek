@@ -50,3 +50,8 @@ export interface ICardActions {
 export type TCardPreview = Omit<IProduct, 'id'> & { inBasket: boolean };
 
 export type TCardBasket = Pick<IProduct, 'title' | 'price'> & { index: number };
+
+export interface IFormState {
+    valid: boolean;
+    errors: string;
+}

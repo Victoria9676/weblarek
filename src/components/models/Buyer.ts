@@ -5,6 +5,11 @@ export class Buyer {
   protected email: string = "";
   protected phone: string = "";
   protected address: string = "";
+  protected events: IEvents;
+
+  constructor(events: IEvents) {
+    this.events = events;
+  }
 
   //сохранение переданных полей
   setData(data: Partial<IBuyer>): void {
@@ -21,6 +26,7 @@ export class Buyer {
     if (data.address !== undefined) {
       this.address = data.address;
     }
+    this.events.emit("buyer:changed");
   }
 
   //возвращение данных о покупателе
@@ -39,6 +45,7 @@ export class Buyer {
     this.email = "";
     this.phone = "";
     this.address = "";
+    this.events.emit("buyer:changed");
   }
   //проверка данных о покупателе
   validate(): TBuyerErrors {
