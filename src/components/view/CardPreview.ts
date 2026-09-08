@@ -26,20 +26,15 @@ export class CardPreview extends Card<TCardPreview> {
       container,
     );
     this.bindEvents();
-    //this.cardButton.addEventListener("click", actions.onClick);
   }
-  /**
-   * Подписывает обработчик на кнопку. Вызывается в конструкторе.
-   */
+  //Подписывает обработчик на кнопку. Вызывается в конструкторе.  \
   private bindEvents(): void {
     if (this.isBound) return;
     this.cardButton.addEventListener("click", this.actions.onClick);
     this.isBound = true;
   }
 
-  /**
-   * Отписывает обработчик. Обязательно вызываем перед удалением карточки из DOM.
-   */
+  //Отписывает обработчик. Вызывается перед удалением карточки из DOM.
   public unbind(): void {
     if (!this.isBound) return;
     this.cardButton.removeEventListener("click", this.actions.onClick);
@@ -51,7 +46,6 @@ export class CardPreview extends Card<TCardPreview> {
     this.cardCategory.className = className
       ? `card__category ${className}`
       : "card__category";
-    //this.cardCategory.className = `card__category ${className ?? ""}`;
   }
   set image(value: string) {
     this.setImage(
@@ -75,10 +69,7 @@ export class CardPreview extends Card<TCardPreview> {
     this.cardButton.textContent = value ? "Удалить из корзины" : "Купить";
   }
 
-  /**
-   * Синхронизирует состояние кнопки на основе цены.
-   * Если цена отсутствует — кнопка «Недоступно».
-   */
+  //Синхронизирует состояние кнопки на основе цены. Если цена отсутствует — кнопка «Недоступно».
   private syncButtonState(): void {
     const isUnavailable = super.price === null;
 
@@ -91,10 +82,11 @@ export class CardPreview extends Card<TCardPreview> {
     this.cardButton.disabled = false;
   }
 
-  /**
-   * Удобный метод для установки всех данных карточки разом.
-   */
+  //Метод для установки всех данных карточки разом.\
   public setData(data: TCardPreview): void {
+    if (data.title !== undefined) {
+      this.title = data.title;
+    }
     if (data.category !== undefined) {
       this.category = data.category;
     }
@@ -106,6 +98,9 @@ export class CardPreview extends Card<TCardPreview> {
     }
     if (data.price !== undefined) {
       this.price = data.price;
+    }
+    if (data.inBasket !== undefined) {
+      this.inBasket = data.inBasket;
     }
   }
 }

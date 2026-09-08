@@ -44,14 +44,14 @@ export interface IOrderResult {
 }
 
 export interface ICardActions {
-    onClick: (event: MouseEvent) => void;
+  onClick: (event: MouseEvent) => void;
 }
 
-export type TCardPreview = Omit<IProduct, 'id'> & { inBasket: boolean };
+export type TCardPreview = Omit<IProduct, "id"> & { inBasket: boolean };
 
-export type TCardBasket = Pick<IProduct, 'title' | 'price'> & { index: number };
+export type TCardBasket = Pick<IProduct, "title" | "price"> & { index: number };
 
 export interface IFormState {
-    valid: boolean;
-    errors: string;
+  valid: boolean;
+  errors: string;
 }

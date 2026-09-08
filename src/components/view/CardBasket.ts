@@ -8,7 +8,7 @@ export class CardBasket extends Card<TCardBasket> {
   protected actions: ICardActions;
 
   private isBound = false;
-  private readonly handleDelete = () => this.actions.onClick();
+  private readonly handleDelete = (e: MouseEvent) => this.actions.onClick(e);
 
   constructor(container: HTMLElement, actions: ICardActions) {
     super(container);

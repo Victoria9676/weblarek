@@ -9,15 +9,11 @@ export class Order extends Form<IFormState> {
 
   constructor(container: HTMLFormElement, events: IEvents) {
     super(container, events);
-    // super() вызовет bindEvents() — кнопки ищутся внутри bindEvents()
   }
 
   protected bindEvents(): void {
     super.bindEvents();
     if (this.isPaymentBound) return;
-
-    // Ищем кнопки здесь, а не в конструкторе —
-    // this.form уже задан в Form.constructor
     this.paymentButtons = Array.from(
       this.form.querySelectorAll<HTMLButtonElement>(".button_alt"),
     );

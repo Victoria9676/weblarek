@@ -1,4 +1,5 @@
 import { IBuyer, TBuyerErrors, TPayment } from "../../types";
+import { IEvents } from "../base/Events";
 
 export class Buyer {
   protected payment: TPayment | null = null;
