@@ -5,14 +5,9 @@ import { ensureElement } from "../../utils/utils";
 export class CardBasket extends Card<TCardBasket> {
   protected cardIndex: HTMLElement;
   protected cardButton: HTMLButtonElement;
-  protected actions: ICardActions;
-
-  private isBound = false;
-  private readonly handleDelete = (e: MouseEvent) => this.actions.onClick(e);
 
   constructor(container: HTMLElement, actions: ICardActions) {
     super(container);
-    this.actions = actions;
     this.cardIndex = ensureElement<HTMLElement>(
       ".basket__item-index",
       container,
@@ -21,24 +16,9 @@ export class CardBasket extends Card<TCardBasket> {
       ".basket__item-delete",
       container,
     );
-    this.bindEvents();
-  }
-
-  private bindEvents(): void {
-    if (this.isBound) return;
-    this.cardButton.addEventListener("click", this.handleDelete);
-    this.isBound = true;
-  }
-
-  public unbind(): void {
-    if (!this.isBound) return;
-    this.cardButton.removeEventListener("click", this.handleDelete);
-    this.isBound = false;
-  }
-
-  setData(data: TCardBasket): void {
-    super.setData(data);
-    this.index = data.index;
+    this.cardButton.addEventListener("click", (e: MouseEvent) => {
+      actions.onClick(e);
+    });
   }
 
   set index(value: number) {

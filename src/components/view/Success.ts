@@ -7,16 +7,11 @@ interface ISuccessData {
 }
 
 export class Success extends Component<ISuccessData> {
-  protected events: IEvents;
   protected description: HTMLElement;
   protected closeButton: HTMLButtonElement;
 
-  private isBound = false;
-  private readonly handleClose = () => this.events.emit("success:close");
-
   constructor(container: HTMLElement, events: IEvents) {
     super(container);
-    this.events = events;
     this.description = ensureElement<HTMLElement>(
       ".order-success__description",
       container,
@@ -25,20 +20,9 @@ export class Success extends Component<ISuccessData> {
       ".order-success__close",
       container,
     );
-
-    this.bindEvents();
-  }
-
-  private bindEvents(): void {
-    if (this.isBound) return;
-    this.closeButton.addEventListener("click", this.handleClose);
-    this.isBound = true;
-  }
-
-  public unbind(): void {
-    if (!this.isBound) return;
-    this.closeButton.removeEventListener("click", this.handleClose);
-    this.isBound = false;
+    this.closeButton.addEventListener("click", () => {
+      events.emit("success:close");
+    });
   }
 
   set total(value: number) {

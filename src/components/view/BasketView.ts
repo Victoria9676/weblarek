@@ -1,6 +1,6 @@
 import { Component } from "../base/Component";
 import { IEvents } from "../base/Events";
-import { ensureElement, createElement } from "../../utils/utils";
+import { ensureElement } from "../../utils/utils";
 
 interface IBasketData {
   items: HTMLElement[];
@@ -13,9 +13,6 @@ export class BasketView extends Component<IBasketData> {
   protected basketTotal: HTMLElement;
   protected orderButton: HTMLButtonElement;
 
-  private isBound = false;
-  private readonly handleOrderClick = () => this.events.emit("basket:order");
-
   constructor(container: HTMLElement, events: IEvents) {
     super(container);
     this.events = events;
@@ -25,35 +22,23 @@ export class BasketView extends Component<IBasketData> {
       ".basket__button",
       container,
     );
-
-    this.bindEvents();
-  }
-  private bindEvents(): void {
-    if (this.isBound) return;
-    this.orderButton.addEventListener("click", this.handleOrderClick);
-    this.isBound = true;
-  }
-
-  public unbind(): void {
-    if (!this.isBound) return;
-    this.orderButton.removeEventListener("click", this.handleOrderClick);
-    this.isBound = false;
+    this.orderButton.addEventListener("click", () => {
+      this.events.emit("basket:order");
+    });
   }
 
   set items(items: HTMLElement[]) {
     if (items.length) {
       this.list.replaceChildren(...items);
-      this.orderButton.disabled = false;
-    } else {
-      this.list.replaceChildren(
-        createElement<HTMLElement>("p", { textContent: "Корзина пуста" }),
-      );
-      this.orderButton.disabled = true;
     }
   }
 
   set total(value: number) {
     this.basketTotal.textContent = `${value} синапсов`;
+  }
+
+  set isOrderButtonEnabled(value: boolean) {
+    this.orderButton.disabled = !value;
   }
 
   public setData(data: Partial<IBasketData>): void {

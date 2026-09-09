@@ -8,20 +8,6 @@ export abstract class Form<T> extends Component<T> {
   protected submitButton: HTMLButtonElement;
   protected formErrors: HTMLElement;
 
-  private isBound = false;
-  private readonly handleInput = (event: Event) => {
-    const target = event.target as HTMLInputElement;
-    if (target.name) {
-      this.events.emit(`${this.form.name}.${target.name}:change`, {
-        value: target.value,
-      });
-    }
-  };
-  private readonly handleSubmit = (event: Event) => {
-    event.preventDefault();
-    this.events.emit(`${this.form.name}:submit`);
-  };
-
   constructor(container: HTMLFormElement, events: IEvents) {
     super(container);
     this.events = events;
@@ -31,22 +17,18 @@ export abstract class Form<T> extends Component<T> {
       container,
     );
     this.formErrors = ensureElement<HTMLElement>(".form__errors", container);
-
-    this.bindEvents();
-  }
-
-  protected bindEvents(): void {
-    if (this.isBound) return;
-    this.form.addEventListener("input", this.handleInput);
-    this.form.addEventListener("submit", this.handleSubmit);
-    this.isBound = true;
-  }
-
-  public unbind(): void {
-    if (!this.isBound) return;
-    this.form.removeEventListener("input", this.handleInput);
-    this.form.removeEventListener("submit", this.handleSubmit);
-    this.isBound = false;
+    this.form.addEventListener("input", (event: Event) => {
+      const target = event.target as HTMLInputElement;
+      if (target.name) {
+        this.events.emit(`${this.form.name}.${target.name}:change`, {
+          value: target.value,
+        });
+      }
+    });
+    this.form.addEventListener("submit", (event: Event) => {
+      event.preventDefault();
+      this.events.emit(`${this.form.name}:submit`);
+    });
   }
 
   set valid(value: boolean) {

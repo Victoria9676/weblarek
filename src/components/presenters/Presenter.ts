@@ -1,79 +1,157 @@
 import { IEvents } from "../base/Events";
-import { Catalog } from "../models/Catalog";
-import { Basket } from "../models/Basket";
-import { Buyer } from "../models/Buyer";
-import { LarekApi } from "../LarekApi";
-import { Page } from "../view/Page";
-import { Modal } from "../view/Modal";
-import { BasketView } from "../view/BasketView";
-import { Order } from "../view/Order";
-import { Contacts } from "../view/Contacts";
-import { Success } from "../view/Success";
-import { CardCatalog } from "../view/CardCatalog";
-import { CardPreview } from "../view/CardPreview";
-import { CardBasket } from "../view/CardBasket";
+import {
+  ICatalog,
+  IBasket,
+  IBuyerModel,
+  ILarekApi,
+  IPageHeader,
+  IPageGallery,
+  IModal,
+  IBasketView,
+  IOrderView,
+  IContactsView,
+  ISuccessView,
+  ICardPreview,
+  TPayment,
+} from "../../types";
 import { cloneTemplate } from "../../utils/utils";
+import { CDN_URL } from "../../utils/constants";
+import { CardCatalog } from "../view/CardCatalog";
+import { CardBasket } from "../view/CardBasket";
 
 export class Presenter {
-  private currentPreview: CardPreview | null = null;
-
   constructor(
     private events: IEvents,
-    private catalog: Catalog,
-    private basket: Basket,
-    private buyer: Buyer,
-    private api: LarekApi,
-    private page: Page,
-    private modal: Modal,
-    private basketView: BasketView,
-    private order: Order,
-    private contacts: Contacts,
-    private success: Success,
+    private catalog: ICatalog,
+    private basket: IBasket,
+    private buyer: IBuyerModel,
+    private api: ILarekApi,
+    private pageHeader: IPageHeader,
+    private pageGallery: IPageGallery,
+    private modal: IModal,
+    private basketView: IBasketView,
+    private order: IOrderView,
+    private contacts: IContactsView,
+    private success: ISuccessView,
+    private cardPreview: ICardPreview,
   ) {
     this.bindEvents();
   }
 
   private bindEvents(): void {
+    // ===== События от моделей — только здесь перерисовка =====
+
     this.events.on("catalog:changed", () => this.renderCatalog());
+
     this.events.on("basket:changed", () => {
-      this.page.counter = this.basket.getCount();
+      this.pageHeader.counter = this.basket.getCount();
+      this.renderBasket();
     });
 
-    this.events.on<{ id: string }>("card:select", ({ id }) =>
-      this.handleCardSelect(id),
-    );
-    this.events.on("card:action", () => this.handleCardAction());
-    this.events.on("basket:open", () => this.handleBasketOpen());
-    this.events.on<{ id: string }>("card:delete", ({ id }) =>
-      this.handleCardDelete(id),
-    );
+    this.events.on("buyer:changed", () => {
+      const data = this.buyer.getData();
 
-    this.events.on("basket:order", () => this.handleBasketOrder());
+      // Перерисовка формы заказа
+      this.order.payment = data.payment ?? "";
+      this.order.address = data.address;
+      this.validateOrder();
+
+      // Перерисовка формы контактов
+      this.contacts.email = data.email;
+      this.contacts.phone = data.phone;
+      this.validateContacts();
+    });
+
+    this.events.on("catalog:selected", () => {
+      const product = this.catalog.getSelectedProduct();
+      if (!product) return;
+
+      const inBasket = this.basket.hasItem(product.id);
+      const isUnavailable = product.price === null;
+
+      const buttonText = isUnavailable
+        ? "Недоступно"
+        : inBasket
+          ? "Удалить из корзины"
+          : "Купить";
+      const buttonDisabled = isUnavailable;
+
+      this.modal.content = this.cardPreview.render({
+        title: product.title,
+        description: product.description,
+        image: `${CDN_URL}${product.image}`,
+        category: product.category,
+        price: product.price,
+        buttonText,
+        buttonDisabled,
+      });
+      this.modal.open();
+    });
+
+    // ===== События от представлений — только изменение моделей =====
+
+    this.events.on<{ id: string }>("card:select", ({ id }) => {
+      const product = this.catalog.getProduct(id);
+      if (product) {
+        this.catalog.setSelectedProduct(product);
+      }
+    });
+
+    this.events.on("card:action", () => {
+      const product = this.catalog.getSelectedProduct();
+      if (!product) return;
+
+      if (this.basket.hasItem(product.id)) {
+        this.basket.removeItem(product);
+      } else {
+        this.basket.addItem(product);
+      }
+      this.modal.close();
+    });
+
+    this.events.on("basket:open", () => {
+      this.modal.content = this.basketView.render();
+      this.modal.open();
+    });
+
+    this.events.on<{ id: string }>("card:delete", ({ id }) => {
+      const product = this.catalog.getProduct(id);
+      if (product) {
+        this.basket.removeItem(product);
+      }
+    });
+
+    this.events.on("basket:order", () => {
+      this.modal.content = this.order.render();
+      this.modal.open();
+    });
+
     this.events.on<{ value: string }>("order.address:change", ({ value }) => {
       this.buyer.setData({ address: value });
-      this.validateOrder();
     });
-    this.events.on<{ payment: "card" | "cash" }>(
-      "order:payment",
-      ({ payment }) => {
-        this.buyer.setData({ payment });
-        this.order.payment = payment;
-        this.validateOrder();
-      },
-    );
 
-    this.events.on("order:submit", () => this.handleOrderSubmit());
+    this.events.on<{ payment: TPayment }>("order:payment", ({ payment }) => {
+      this.buyer.setData({ payment });
+    });
+
+    this.events.on("order:submit", () => {
+      this.modal.content = this.contacts.render();
+      this.modal.open();
+    });
+
     this.events.on<{ value: string }>("contacts.email:change", ({ value }) => {
       this.buyer.setData({ email: value });
-      this.validateContacts();
     });
+
     this.events.on<{ value: string }>("contacts.phone:change", ({ value }) => {
       this.buyer.setData({ phone: value });
-      this.validateContacts();
     });
 
     this.events.on("contacts:submit", () => this.handleContactsSubmit());
-    this.events.on("success:close", () => this.modal.close());
+
+    this.events.on("success:close", () => {
+      this.modal.close();
+    });
   }
 
   public async init(): Promise<void> {
@@ -99,61 +177,10 @@ export class Presenter {
         title: product.title,
         price: product.price,
         category: product.category,
-        image: product.image,
+        image: `${CDN_URL}${product.image}`,
       });
     });
-    this.page.catalog = cards;
-  }
-
-  private handleCardSelect(id: string): void {
-    const product = this.catalog.getProduct(id);
-    if (!product) return;
-
-    this.catalog.setSelectedProduct(product);
-
-    if (this.currentPreview) {
-      this.currentPreview.unbind();
-    }
-
-    const previewContainer = cloneTemplate("#card-preview");
-    this.currentPreview = new CardPreview(previewContainer, {
-      onClick: () => this.events.emit("card:action"),
-    });
-
-    this.currentPreview.setData({
-      title: product.title,
-      description: product.description,
-      image: product.image,
-      category: product.category,
-      price: product.price,
-      inBasket: this.basket.hasItem(id),
-    });
-
-    this.modal.render({ content: previewContainer });
-    this.modal.open();
-  }
-
-  private handleCardAction(): void {
-    const product = this.catalog.getSelectedProduct();
-    if (!product) return;
-
-    if (this.basket.hasItem(product.id)) {
-      this.basket.removeItem(product);
-    } else {
-      this.basket.addItem(product);
-    }
-
-    if (this.currentPreview) {
-      this.currentPreview.inBasket = this.basket.hasItem(product.id);
-    }
-
-    this.modal.close();
-  }
-
-  private handleBasketOpen(): void {
-    this.renderBasket();
-    this.modal.render({ content: this.basketView.render() });
-    this.modal.open();
+    this.pageGallery.catalog = cards;
   }
 
   private renderBasket(): void {
@@ -162,29 +189,15 @@ export class Presenter {
       const card = new CardBasket(cardContainer, {
         onClick: () => this.events.emit("card:delete", { id: product.id }),
       });
-      card.setData({
+      return card.render({
         index: index + 1,
         title: product.title,
         price: product.price,
       });
-      return cardContainer;
     });
     this.basketView.items = items;
     this.basketView.total = this.basket.getTotal();
-  }
-
-  private handleCardDelete(id: string): void {
-    const product = this.catalog.getProduct(id);
-    if (product) {
-      this.basket.removeItem(product);
-    }
-    this.renderBasket();
-  }
-
-  private handleBasketOrder(): void {
-    this.modal.render({ content: this.order.render() });
-    this.order.payment = this.buyer.getData().payment ?? "";
-    this.validateOrder();
+    this.basketView.isOrderButtonEnabled = items.length > 0;
   }
 
   private validateOrder(): void {
@@ -193,11 +206,6 @@ export class Presenter {
     this.order.errors = [errors.payment, errors.address]
       .filter(Boolean)
       .join("; ");
-  }
-
-  private handleOrderSubmit(): void {
-    this.modal.render({ content: this.contacts.render() });
-    this.validateContacts();
   }
 
   private validateContacts(): void {
@@ -217,13 +225,9 @@ export class Presenter {
 
     try {
       const result = await this.api.postOrder(orderData);
-      this.modal.render({
-        content: this.success.render({ total: result.total }),
-      });
+      this.modal.content = this.success.render({ total: result.total });
       this.basket.clear();
       this.buyer.clear();
-      this.order.reset();
-      this.contacts.reset();
     } catch (error) {
       console.error(error);
     }
