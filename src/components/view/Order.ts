@@ -1,9 +1,9 @@
 import { Form } from "./Form";
-import { IFormState, TPayment } from "../../types";
+import { IOrderViewData, TPayment, IOrderView } from "../../types";
 import { ensureElement, ensureAllElements } from "../../utils/utils";
 import { IEvents } from "../base/Events";
 
-export class Order extends Form<IFormState> {
+export class Order extends Form<IOrderViewData> implements IOrderView {
   protected addressInput: HTMLInputElement;
   protected paymentButtons: HTMLButtonElement[];
 

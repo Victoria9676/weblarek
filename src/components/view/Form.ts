@@ -38,10 +38,4 @@ export abstract class Form<T> extends Component<T> {
   set errors(value: string) {
     this.formErrors.textContent = value;
   }
-
-  reset() {
-    this.form.reset();
-    this.errors = "";
-    this.valid = false;
-  }
 }

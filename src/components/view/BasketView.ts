@@ -1,13 +1,9 @@
 import { Component } from "../base/Component";
 import { IEvents } from "../base/Events";
 import { ensureElement } from "../../utils/utils";
+import { IBasketView, IBasketData } from "../../types";
 
-interface IBasketData {
-  items: HTMLElement[];
-  total: number;
-}
-
-export class BasketView extends Component<IBasketData> {
+export class BasketView extends Component<IBasketData> implements IBasketView {
   protected events: IEvents;
   protected list: HTMLElement;
   protected basketTotal: HTMLElement;
@@ -28,9 +24,7 @@ export class BasketView extends Component<IBasketData> {
   }
 
   set items(items: HTMLElement[]) {
-    if (items.length) {
-      this.list.replaceChildren(...items);
-    }
+    this.list.replaceChildren(...items);
   }
 
   set total(value: number) {
@@ -39,14 +33,5 @@ export class BasketView extends Component<IBasketData> {
 
   set isOrderButtonEnabled(value: boolean) {
     this.orderButton.disabled = !value;
-  }
-
-  public setData(data: Partial<IBasketData>): void {
-    if (data.items !== undefined) {
-      this.items = data.items;
-    }
-    if (data.total !== undefined) {
-      this.total = data.total;
-    }
   }
 }

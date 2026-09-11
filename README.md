@@ -101,7 +101,7 @@ Presenter - презентер содержит основную логику п
 `handleResponse(response: Response): Promise<object>` - защищенный метод проверяющий ответ сервера на корректность и возвращающий объект с данными полученный от сервера или отклоненный промис, в случае некорректных данных.
 
 Генерация событий:
-Данный класс не генерирует события. Является коммуникационным слоем  — события генерируют моедли.
+Данный класс не генерирует события. Является коммуникационным слоем — события генерируют модели.
 
 #### Класс Events
 
@@ -128,6 +128,7 @@ Presenter - презентер содержит основную логику п
 В приложении используются две сущности, описывающие данные, — товар и покупатель.
 
 ### Ключевые данные
+
 #### Интерфейс IProduct
 
 Описывает товар магазина в том виде, в котором он приходит с сервера.
@@ -149,7 +150,7 @@ interface IProduct {
 
 ```
 interface IBuyer {
-  payment: TPayment; // выбранный вид оплаты
+  payment: TPayment | null; // выбранный вид оплаты
   email: string;     // электронная почта
   phone: string;     // телефон
   address: string;   // адрес доставки
@@ -224,6 +225,7 @@ type TCardBasket = Pick<IProduct, "title" | "price"> & { index: number };
 ### Вспомогательные типы
 
 #### Тип TPayment
+
 Вид оплаты заказа. Может принимать одно из двух значений.
 
 ```
@@ -231,6 +233,7 @@ type TPayment = "card" | "cash";
 ```
 
 #### Тип TBuyerErrors
+
 Формат результата валидации: объект, где ключи — имена невалидных полей покупателя, значения — тексты ошибок. Если все поля корректны, объект пуст.
 
 ```
@@ -238,29 +241,91 @@ type TBuyerErrors = Partial<Record<keyof IBuyer, string>>;
 ```
 
 #### Тип ICardActions
+
 Колбэк для обработки клика по карточке.
 
 ```
 interface ICardActions {
-  onClick: (event: MouseEvent) => void;
+  onClick: (event?: MouseEvent) => void;
 }
 ```
 
-#### Тип IFormState
-Состояние формы: признак валидности, текст ошибок, выбранный способ оплаты.
+### Типы данных для render()
+
+#### Тип IPageHeaderData
+
+Данные для шапки страницы: счётчик товаров в корзине.
 
 ```
-interface IFormState {
+interface IPageHeaderData  {
+  counter: number;
+}
+```
+
+#### Тип IPageGalleryData
+
+Данные для галереи: массив DOM-элементов карточек товаров.
+
+```
+interface IPageGalleryData  {
+  catalog: HTMLElement[];
+}
+```
+
+#### Тип IBasketData
+
+Данные для корзины: список позиций, итоговая сумма, доступность кнопки оформления.
+
+```
+interface IBasketData  {
+  items: HTMLElement[];
+  total: number;
+  isOrderButtonEnabled: boolean;
+}
+```
+
+#### Тип IOrderViewData
+
+Данные для формы заказа: способ оплаты, адрес, валидность, текст ошибок.
+
+```
+interface IOrderViewData  {
+  payment: TPayment | "";
+  address: string;
   valid: boolean;
   errors: string;
-  payment: TPayment | "";
+}
+```
+
+#### Тип IContactsViewData
+
+Данные для формы контактов: email, телефон, валидность, текст ошибок.
+
+```
+interface IContactsViewData  {
+  email: string;
+  phone: string;
+  valid: boolean;
+  errors: string;
+}
+```
+
+#### Тип IModalData
+
+Данные для модального окна: содержимое.
+
+```
+interface IModalData  {
+  content: HTMLElement;
 }
 ```
 
 ### Интерфейсы моделей
+
 Описывают контракты, от которых зависит `Presenter`, вместо конкретных классов.
 
 #### Тип ICatalog
+
 Управление каталогом: загрузка товаров, поиск по ID, выбор товара для превью.
 
 ```
@@ -274,6 +339,7 @@ interface ICatalog {
 ```
 
 #### Тип IBasket
+
 Управление корзиной: добавление/удаление товаров, подсчёт суммы и количества, очистка.
 
 ```
@@ -289,6 +355,7 @@ interface IBasket {
 ```
 
 #### Тип IBuyerModel
+
 Управление данными покупателя: частичное обновление, получение состояния, валидация, сброс.
 
 ```
@@ -301,90 +368,132 @@ interface IBuyerModel {
 ```
 
 ### Интерфейсы представлений
+
 Описывают контракты компонентов View, от которых зависит `Presenter`.
 
 #### Тип IPageHeader
+
 Счётчик корзины в шапке.
 
 ```
 interface IPageHeader {
-  counter: number;
+  render(data: Partial<IPageHeaderData>): HTMLElement;
 }
 ```
 
 #### Тип IPageGallery
+
 Каталог карточек на странице.
 
 ```
 interface IPageGallery {
-  catalog: HTMLElement[];
+  render(data: Partial<IPageGalleryData>): HTMLElement;
 }
 ```
 
 #### Тип IModal
+
 Модальное окно: установка контента, открытие/закрытие.
 
 ```
 interface IModal {
-  content: HTMLElement;
+  render(data: Partial<IModalData>): HTMLElement;
   open(): void;
   close(): void;
 }
 ```
 
 #### Тип IBasketView
+
 Корзина: список товаров, сумма, доступность кнопки оформления и `render()`.
 
 ```
 interface IBasketView {
-  items: HTMLElement[];
-  total: number;
-  isOrderButtonEnabled: boolean;
-  render(): HTMLElement;
+  render(data?: Partial<IBasketData>): HTMLElement;
 }
 ```
 
 #### Тип IOrderView
+
 Форма заказа: способ оплаты, адрес, валидность, ошибки, `render()`.
 
 ```
 interface IOrderView {
-  payment: TPayment | "";
-  address: string;
-  valid: boolean;
-  errors: string;
-  render(): HTMLElement;
+  render(data?: Partial<IOrderViewData>): HTMLElement;
 }
 ```
 
 #### Тип IContactsView
+
 Форма контактов: email, телефон, валидность, ошибки, render().
 
 ```
 interface IContactsView {
-  email: string;
-  phone: string;
-  valid: boolean;
-  errors: string;
-  render(): HTMLElement;
+  render(data?: Partial<IContactsViewData>): HTMLElement;
 }
 ```
 
 #### Тип ISuccessView
+
 Экран успеха: `render()` с суммой списания.
 
 ```
 interface ISuccessView {
-  render(data?: { total: number }): HTMLElement;
+  render(data?: Partial<{ total: number }>): HTMLElement;
 }
 ```
 
 #### Тип ICardPreview
-Карточка превью: `render()` с данными товара и состоянием корзины.
+
+Карточка превью: render() с данными товара и состоянием кнопки.
 
 ```
 interface ICardPreview {
   render(data: TCardPreview): HTMLElement;
+}
+```
+
+#### Тип ICardCatalogView
+
+Карточка каталога: `render()` с данными товара (название, цена, категория, изображение).
+
+```
+interface ICardCatalogView {
+  render(data: TCardCatalog): HTMLElement;
+}
+```
+
+#### Тип ICardBasketView
+
+Карточка корзины: `render()` с данными товара (название, цена) и порядковым номером.
+
+```
+interface ICardBasketView {
+  render(data: TCardBasket): HTMLElement;
+}
+```
+
+### Конструкторы карточек
+
+Интерфейсы-конструкторы позволяют `Presenter` создавать экземпляры карточек, не импортируя конкретные классы. Классы `CardCatalog` и `CardBasket` передаются через параметры конструктора `Presenter`, типизированные этими интерфейсами.
+
+#### Тип ICardCatalogConstructor
+
+Конструктор карточки каталога: создаёт экземпляр `ICardCatalogView`.
+
+```
+interface ICardCatalogConstructor {
+  new (container: HTMLElement, actions: ICardActions): ICardCatalogView;
+}
+```
+
+#### Тип ICardBasketConstructor
+
+Конструктор карточки корзины: создаёт экземпляр `ICardBasketView`.
+
+```
+interface ICardBasketConstructor {
+  new (container: HTMLElement, actions: ICardActions): ICardBasketView;
 }
 ```
 
@@ -411,7 +520,7 @@ interface ICardPreview {
 `getSelectedProduct(): IProduct | null` - возвращает выбранный товар либо null.
 
 Генерация событий:
-`catalog:changed` — при вызове `setProducts()` (презентер перерисовывает галерею). 
+`catalog:changed` — при вызове `setProducts()` (презентер перерисовывает галерею).
 `catalog:selected` — при вызове `setSelectedProduct()` (презентер открывает модальное окно с превью).
 
 #### Класс Basket
@@ -472,8 +581,8 @@ interface ICardPreview {
 `api: IApi` - реализация HTTP‑клиента, используемая для запросов к бэкенду.
 
 Методы класса:  
-`getProducts(): Promise<IProductsResponse>` - выполняет GET-запрос на эндпоинт `/product/` и возвращает промис с объектом `{ total, items }`, где `items` — массив товаров. инициирует GET‑запрос к `/product/`; результат — промис с объектом `{ total, items }`, с полями total (общее количество) и items (массив товаров).
-`postOrder(order: IOrder): Promise<IOrderResult>` - инициирует POST‑запрос к `/order/` с полезной нагрузкой `IOrder`; результат — промис с объектом `{ id, total }` с подтверждением заказа `(id, total)`.
+`getProducts(): Promise<IProductsResponse>` - выполняет GET-запрос на эндпоинт `/product/` и возвращает промис с объектом `{ total, items }`, где `total` — общее количество товаров, `items` — массив товаров.
+`postOrder(order: IOrder): Promise<IOrderResult>` - инициирует POST-запрос к `/order/` с полезной нагрузкой `IOrder`; результат — промис с объектом `{ id, total }` — подтверждением заказа.
 
 Генерация событий:
 Данный класс не генерирует события. Возвращает данные через промисы — обработку и генерацию событий выполняет презентер.
@@ -487,10 +596,11 @@ interface ICardPreview {
 #### Класс Card
 
 Card — это «каркас» для всех карточек товаров в приложении. Сам по себе он не используется — на его основе делают конкретные карточки под разные сценарии:
--показывает название и цену товара;
--хранит id товара — чтобы по клику или другому действию можно было понять, о каком товаре речь;
--использует дженерик `T`: каждый вид карточки может работать со своим типом данных, но при этом пользоваться общей логикой.
-Такой подход избавляет от дублирования кода: не нужно в каждой карточке заново описывать, как выводить название и цену или как хранить id.
+
+- показывает название и цену товара;
+- хранит id товара — чтобы по клику или другому действию можно было понять, о каком товаре речь;
+- использует дженерик `T`: каждый вид карточки может работать со своим типом данных, но при этом пользоваться общей логикой.
+  Такой подход избавляет от дублирования кода: не нужно в каждой карточке заново описывать, как выводить название и цену или как хранить id.
 
 Конструктор:  
 `constructor(container: HTMLElement)` - принимает корневой элемент карточки (копию шаблона).
@@ -511,7 +621,7 @@ Card — это «каркас» для всех карточек товаро
 Абстрактный промежуточный класс в слое View. Он расширяет базовый `Card` и добавляет общую логику для карточек, где важно отображение медиа (изображения) и категории товара. Сам по себе не используется напрямую — служит базой для конкретных реализаций вроде `CardCatalog`.
 
 Конструктор:  
-`constructor(container: HTMLElement)` - Инициализирует родительский `Card`, затем находит и сохраняет ссылки на `.card__category` и .`card__image`. При отсутствии элементов `ensureElement` выбросит ошибку — это помогает быстро находить несоответствия шаблона и кода.
+`constructor(container: HTMLElement)` - Инициализирует родительский Card, затем находит и сохраняет ссылки на `.card__category` и `.card__image`. При отсутствии элементов `ensureElement` выбросит ошибку — это помогает быстро находить несоответствия шаблона и кода.
 
 Поля класса:  
 `cardCategory: HTMLElement` - элемент категории.
@@ -529,44 +639,23 @@ Card — это «каркас» для всех карточек товаро
 Компонент представления, который отвечает за отображение карточки товара в каталоге и обработку клика по ней. Наследуется от `CardMedia`, который, в свою очередь, наследует базовую логику из `Card`.
 
 Конструктор:  
-`constructor(container: HTMLElement, actions: ICardActions` - Инициализирует карточку через родительский конструктор и навешивает обработчик клика. 
-
-Поля класса:  
-`cardTitle: HTMLElement` - элемент названия товара.
-`cardPrice: HTMLElement` - элемент цены товара.
-`cardCategory: HTMLElement` - элемент категории товара.
-`cardImage: HTMLImageElement` - элемент изображения товара.
-`container: HTMLImageElement` - корневой DOM-элемент карточки
+`constructor(container: HTMLElement, actions: ICardActions)` - Инициализирует карточку через родительский конструктор и навешивает обработчик клика.
 
 Методы класса:
-`constructor(container: HTMLElement, actions: ICardActions)` - инициализирует карточку, навешивает обработчик клика.
-`set title(value: string)` - устанавливает текст названия.
-`set price(value: number | null)` - форматирует и устанавливает цену («N синапсов» или «Бесценно»)
-`set category(value: string)` - выводит категорию и задаёт модификатор фона.
-`set image(value: string)` - задаёт изображение товара.
-`setImage(el: HTMLImageElement, src: string, alt?: string)` - установливает `src` и `alt` у `img`.
-`render(data?: Partial<T>): HTMLElement` — базовый метод рендера.
+Наследует `set title`, `set price`, `set category`, `set image` от родителей.
+`render(data?: Partial<T>): HTMLElement` — базовый метод рендера из `Component`, вызывает сеттеры через `Object.assign`
 
 Генерация событий:
 Сам класс `CardCatalog` не генерирует события напрямую — передаёт клик через колбэк; презентер получает событие `card:select` через брокер.
 
 #### Класс CardPreview
 
-`card-preview` - это подробная карточка товара, которая показывается в модальном окне.
-Она берёт базовый функционал (название, цена, id) от родителя Card, а сверху добавляет категорию, картинку и описание. При этом главная особенность — умная кнопка действия: она сама решает, что показать и как себя вести:
-Если товара нет в корзине — показывает «Купить».
-Если товар уже в корзине — меняет надпись на «Удалить из корзины».
-Если у товара нет цены — показывает «Недоступно» и блокирует кнопку, чтобы нельзя было нажать.
-Вся логика переключения состояний вынесена в карточку, но сама обработка клика (добавить/удалить) уходит через брокер событий в презентер — карточка не знает, как реально менять корзину, она только сообщает, что пользователь нажал.
+`CardPreview` - это подробная карточка товара, которая показывается в модальном окне. Она берёт базовый функционал (название, цена) от родителя `Card`, а сверху добавляет категорию, картинку и описание. Текст и состояние кнопки действия (Купить / Удалить / Недоступно) вычисляются в презентере на основе состояния корзины и цены товара, а затем передаются в карточку через `render(data)`. Карточка не знает, как реально менять корзину — она только отображает данные и сообщает о клике через колбэк.
 
 Конструктор:  
 `constructor(container: HTMLElement, actions: ICardActions)` - находит категорию, изображение, описание и кнопку; вешает обработчик клика на кнопку.
 
 Поля класса:  
-`cardTitle: HTMLElement` - элемент названия.
-`cardPrice: HTMLElement` - элемент цены.
-`cardCategory: HTMLElement` - элемент категории.
-`cardImage: HTMLImageElement` - элемент изображения.
 `cardText: HTMLElement` - элемент описания.
 `cardButton: HTMLButtonElement` - кнопка покупки/удаления.
 
@@ -581,17 +670,14 @@ Card — это «каркас» для всех карточек товаро
 
 #### Класс CardBasket
 
-`card-basket` — это компонент представления, который отвечает за отображение отдельной строки товара в корзине: порядковый номер, название, цена и кнопку удаления. Наследуется от базового класса `Card`, который предоставляет логику отображения заголовка и цены.
+`CardBasket` — это компонент представления, который отвечает за отображение отдельной строки товара в корзине: порядковый номер, название, цена и кнопку удаления. Наследуется от базового класса `Card`, который предоставляет логику отображения заголовка и цены.
 
 Конструктор:  
 `constructor(container: HTMLElement, actions: ICardActions)` - находит элемент номера и кнопку удаления; вешает обработчик клика на кнопку.
 
 Поля класса:  
-`cardTitle: HTMLElement` - элемент названия позиции в корзине.
-`cardPrice: HTMLButtonElement` - элемент цены позиции в корзине.
 `cardIndex: HTMLElement` - элемент порядкового номера позиции в корзине.
 `cardButton: HTMLButtonElement` - кнопка удаления позиции из корзины.
-`container: HTMLElement` - корневой DOM‑элемент карточки
 
 Методы класса:  
 `set index(value: number)` - выводит порядковый номер товара в списке.
@@ -617,9 +703,8 @@ Card — это «каркас» для всех карточек товаро
 Методы класса:  
 `set valid(value: boolean)` - активирует или блокирует кнопку отправки.
 `set errors(value: string)` - выводит текст ошибок под формой.
-`reset(): void` — полностью сбрасывает форму: очищает поля ввода, убирает ошибки, блокирует кнопку отправки и приводит UI в исходное состояние.
 
-Генерация событий: 
+Генерация событий:
 `${form.name}.${field.name}:change` — при вводе в текстовое поле; передаёт имя поля и его значение (презентер сохранит значение в модель покупателя и проверит валидность).
 `${form.name}:submit` — при отправке формы (нажатие основной кнопки). Имя формы (`order` / `contacts`) берётся из атрибута `name`.
 
@@ -639,17 +724,17 @@ Card — это «каркас» для всех карточек товаро
 `set payment(value: TPayment | '')` - визуально выделяет выбранный способ оплаты.
 
 Генерация событий:
-События генерируюся пр наследовании от `Form`
+События генерируются при наследовании от `Form`
 `order.address:change` — при вводе в поле адреса.
 `order:submit`— при отправке формы.
 `order:payment` — при клике на кнопку выбора способа оплаты; передаёт `{ payment: TPayment }` (презентер сохраняет значение в модель покупателя).
 
 #### Класс Contacts
 
-`сontacts` — форма второго шага оформления заказа. Содержит два текстовых поля: email и телефон. Вся рутинная логика унаследована от `Form`.
+`Contacts` — форма второго шага оформления заказа. Содержит два текстовых поля: email и телефон. Вся рутинная логика унаследована от `Form`.
 
 Конструктор:  
-`constructor(container: HTMLFormElement, events: IEvents)` - использует конструктор `Form`,  находит поля `email` и `phone`.
+`constructor(container: HTMLFormElement, events: IEvents)` - использует конструктор `Form`, находит поля `email` и `phone`.
 
 Поля класса:
 `emailInput: HTMLInputElement` - поле ввода email.
@@ -660,7 +745,7 @@ Card — это «каркас» для всех карточек товаро
 `set phone(value: string)` - устанавливает значение в поле телефона.
 
 Генерация событий:  
-События генерируюся пр наследовании от `Form`
+События генерируются при наследовании от `Form`
 `contacts.email:change` — при вводе в поле `email`.
 `contacts.phone:change` — при вводе в поле телефона.
 `contacts:submit` — при отправке формы.
@@ -669,10 +754,10 @@ Card — это «каркас» для всех карточек товаро
 
 #### Класс PageHeader
 
-`PageHeader` — это компонент представления, который овечает за отображение шапки страницы: счётчика товаров в корзине и кнопки перехода в корзину. Управляет отображением количества позиций и транслирует событие открытия корзины через брокер событий.
+`PageHeader` — это компонент представления, который отвечает за отображение шапки страницы: счётчика товаров в корзине и кнопки перехода в корзину. Управляет отображением количества позиций и транслирует событие открытия корзины через брокер событий.
 
 Конструктор:  
-`constructor(container: HTMLElement, events: IEvents)` - находит галерею, счётчик и кнопку корзины; вешает обработчик клика на кнопку корзины.
+`constructor(container: HTMLElement, events: IEvents)` - находит счётчик и кнопку корзины; вешает обработчик клика на кнопку корзины.
 
 Поля класса:  
 `pageCounter: HTMLElement` — элемент счётчика корзины с классом `.header__basket-counter`. Отображает количество товаров в корзине.
@@ -686,7 +771,7 @@ Card — это «каркас» для всех карточек товаро
 
 #### Класс PageGallery
 
-`PageGallery` — это компонент представления, который овечает за отображение галереи товаров (каталога) на странице: принимает массив готовых карточек товаров и вставляет их в контейнер `.gallery`. Не занимается созданием карточек — только управляет их отображением в галерее.
+`PageGallery` — это компонент представления, который отвечает за отображение галереи товаров (каталога) на странице: принимает массив готовых карточек товаров и вставляет их в контейнер `.gallery`. Не занимается созданием карточек — только управляет их отображением в галерее.
 
 Конструктор:  
 `constructor(container: HTMLElement)` - находит галерею товаров.
@@ -705,7 +790,7 @@ Card — это «каркас» для всех карточек товаро
 `Modal` — это «рамка» для любого модального окна: сам по себе он ничего не решает, но отвечает за управление модальным окном: открытие/закрытие, установку содержимого и обработку кликов по кнопке закрытия и фону. Реализует UX‑паттерн «закрытие по клику вне окна» при этом не позволяя закрывать окно при клике по самому контенту.
 
 Конструктор:  
-`constructor(container: HTMLElement, events: IEvents)` - находит кнопку закрытия и контейнер содержимого; вешает обработчики закрытия (крестик и клик по фону).
+`constructor(container: HTMLElement)` - находит кнопку закрытия и контейнер содержимого; вешает обработчики закрытия (крестик и клик по фону).
 
 Поля класса:  
 `closeButton: HTMLButtonElement` — кнопка закрытия модального окна по клику (крестик в углу).
@@ -735,10 +820,9 @@ Card — это «каркас» для всех карточек товаро
 `orderButton: HTMLButtonElement` - кнопка оформления заказа.
 
 Методы класса:  
-`set items(items: HTMLElement[])` - выводит строки товаров; при пустом списке показывает «Корзина пуста» и блокирует кнопку оформления.
+`set items(items: HTMLElement[])` - выводит строки товаров через `replaceChildren`.
 `set total(value: number)` - выводит общую стоимость товаров.
 `set isOrderButtonEnabled(value: boolean)` - включает или отключает кнопку заказа.
-`setData(data: Partial<IBasketData>): void` - метод для пакетного обновления данных корзины: можно передать только `items`, только `total` или оба поля сразу.
 
 Генерация событий:  
 `basket:order` — при клике на кнопку «Оформить заказ» (презентер открывает форму заказа в модальном окне).
@@ -766,7 +850,7 @@ Card — это «каркас» для всех карточек товаро
 
 Конструктор:
 
-`constructor(private events: IEvents,private catalog: ICatalog,private basket: IBasket,private buyer: IBuyerModel,private api: ILarekApi,private pageHeader: IPageHeader,private pageGallery: IPageGallery,private modal: IModal,private basketView: IBasketView, private order: IOrderView,private contacts: IContactsView,private success: ISuccessView,private cardPreview: ICardPreview,)` - принимает все зависимости (модели, представления, API)сразу вызывает `bindEvents()` для подписки на события.
+`constructor(events, catalog, basket, buyer, api, pageHeader, pageGallery, modal, basketView, order, contacts, success, cardPreview, CardCatalogClass, CardBasketClass)` - принимает все зависимости (модели, представления, API) сразу вызывает `bindEvents()` для подписки на события.
 
 Поля класса:  
 `events: IEvents` - брокер событий — единый канал коммуникации между View и Presenter.
@@ -782,15 +866,18 @@ Card — это «каркас» для всех карточек товаро
 `contacts: IContactsView` - представление формы контактов (email, телефон).
 `success: ISuccessView` - представление экрана успешного заказа (сумма списания, кнопка закрытия).
 `cardPreview: ICardPreview` - представление превью товара (карточка в модальном окне).
+`CardCatalogClass: ICardCatalogConstructor` — конструктор карточки каталога.
+`CardBasketClass: ICardBasketConstructor` — конструктор карточки корзины.
 
 Методы класса:  
 `init(): Promise<void>` — загружает каталог товаров с сервера, проверяет корректность данных и передаёт их в модель catalog. Ошибки перехватываются через `try/catch`.
 `bindEvents(): void` — централизует всю подписку на события. Разделён на две группы: события от моделей (`catalog:changed`, `basket:changed`, `buyer:changed`, `catalog:selected`) вызывают перерисовку UI; события от представлений (`card:select`, `card:action`, `basket:open`, `order:submit` и т. д.) обновляют модели.
-`renderCatalog(): void` — перебирает товары из модели `catalog`, создаёт для каждого экземпляр `CardCatalog` на основе шаблона, рендерит карточку с данными (название, цена, категория, изображение) и передаёт массив элементов в `pageGallery.catalog`.
-`renderBasket(): void` — перебирает товары из basket, создаёт экземпляры `CardBasket` с порядковым номером, названием и ценой. Передаёт массив в `basketView.items`, устанавливает итоговую сумму через `basketView.total` и включает/отключает кнопку заказа в зависимости от наличия товаров.
-`validateOrder(): void` — вызывает dвалидацию и проверяет поля `payment` и `address`. Обновляет состояние формы заказа: `order.valid` (доступность кнопки) и `order.errors` (сообщение об ошибках, объединённое из обоих полей через ;).
-`validateContacts(): void` — вызывает dвалидацию и проверяет поля `email` и `phone`. Обновляет состояние формы контактов: `contacts.valid` (доступность кнопки) и `contacts.errors` (сообщение об ошибках).
-`handleContactsSubmit(): Promise<void>` — собирает данные заказа из `buyer.getData()`, добавляет `total` и `items` из корзины, отправляет через `api.postOrder()`. При успехе показывает экран `success` с суммой списания, очищает корзину (`basket.clear()`) и модель покупателя (`buyer.clear()`). Ошибки перехватываются через `try/catch`.
+`renderCatalog(): void` — перебирает товары из модели `catalog`, создаёт для каждого экземпляр `CardCatalogClass` на основе шаблона, рендерит карточку с данными (название, цена, категория, изображение) и передаёт массив элементов в `pageGallery.render({ catalog: cards })`.
+`renderBasket(): void` — перебирает товары из `basket`, создаёт экземпляры `CardBasketClass` с порядковым номером, названием и ценой. Передаёт массив, сумму и состояние кнопки в `basketView.render({ items, total, isOrderButtonEnabled })`.
+`validateOrder(): void` — вызывает `buyer.validate()`, проверяет поля `payment` и `address`, собирает данные покупателя и передаёт всё в `order.render({ valid, errors, payment, address })`.
+`validateContacts(): void` — вызывает `buyer.validate()`, проверяет поля `email` и `phone`, передаёт всё в `contacts.render({ valid, errors, email, phone })`.
+`resetForms(): void` — очищает модель покупателя (`buyer.clear()`) и рендерит обе формы с пустыми значениями через `order.render(...)` и `contacts.render(...)`.
+`handleContactsSubmit(): Promise<void>` — собирает данные заказа из `buyer.getData()`, добавляет `total` и `items` из корзины, отправляет через `api.postOrder()`. При успехе рендерит экран `success` в модальное окно, очищает корзину (`basket.clear()`) и сбрасывает формы через `resetForms()`. Ошибки перехватываются через `try/catch`.
 
 ## Генерация событий
 
@@ -799,36 +886,36 @@ Card — это «каркас» для всех карточек товаро
 
 ### Каталог и карточки
 
-| Событие           | Источник                           | Действие                                                             |
-| ----------------- | ---------------------------------- | -------------------------------------------------------------------- |
-| `catalog:changed` | `Catalog.setProducts()`            | `renderCatalog()` — перерендерить каталог                            |
-| `card:select`     | `CardCatalog` (клик по карточке)   | получить товар из `catalog`, вызвать `catalog.setSelectedProduct()` |
-| `catalog:selected`     | `Catalog.setSelectedProduct()` | получить выбранный товар, определить текст и состояние кнопки (Купить / Удалить / Недоступно), отрендерить `cardPreview` в модальное окно, открыть модальное окно |
-| `card:action` | `CardPreview` (кнопка действия)| Проверить наличие товара в корзине: если есть — `basket.removeItem()`, если нет — `basket.addItem()`. Закрыть модальное окно                    |
+| Событие            | Источник                         | Действие                                                                                                                 |
+| ------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `catalog:changed`  | `Catalog.setProducts()`          | `renderCatalog()` — перерендерить каталог                                                                                |
+| `card:select`      | `CardCatalog` (клик по карточке) | получить товар из `catalog`, вызвать `catalog.setSelectedProduct()`                                                      |
+| `catalog:selected` | `Catalog.setSelectedProduct()`   | определить текст и состояние кнопки, отрендерить `cardPreview`, открыть модальное окно через `modal.render({ content })` |
+| `card:action`      | `CardPreview` (кнопка действия)  | проверить наличие товара в корзине: `basket.removeItem()` или `basket.addItem()`, закрыть модальное окно                 |
 
 ### Корзина
 
-| Событие          | Источник                          | Действие                                                     |
-| ---------------- | --------------------------------- | ------------------------------------------------------------ |
-| `basket:changed` | `Basket.add()/remove()/clear()`   | Обновить счётчик в шапке (`pageHeader.counter`), вызвать `renderBasket()`                  |
-| `basket:open`    | `PageHeader` (кнопка корзины)            | Отрендерить `basketView` в модальное окно, открыть модальное окно       |
-| `card:delete`    | `CardBasket` (кнопка удаления)    | Получить товар из `catalog`, вызвать `basket.removeItem()` |
-| `basket:order`   | `BasketView` (кнопка «Оформить заказ») | Отрендерить форму заказа в модальное окно, открыть модальное окно                |
+| Событие          | Источник                               | Действие                                                                                     |
+| ---------------- | -------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `basket:changed` | `Basket.add()/remove()/clear()`        | `pageHeader.render({ counter })` — обновить счётчик; `renderBasket()` — перерисовать корзину |
+| `basket:open`    | `PageHeader` (кнопка корзины)          | `modal.render({ content: basketView.render() })` — отрендерить корзину в модальное окно      |
+| `card:delete`    | `CardBasket` (кнопка удаления)         | получить товар из `catalog`, вызвать `basket.removeItem()`                                   |
+| `basket:order`   | `BasketView` (кнопка «Оформить заказ») | `modal.render({ content: order.render() })` — отрендерить форму заказа в модальное окно      |
 
 ### Заказ и контакты
 
-| Событие                 | Источник                   | Действие                                             |
-| ----------------------- | -------------------------- | ---------------------------------------------------- |
-| `order.address:change`  | Поле адреса в форме `Order` | `buyer.setData({ address: value })` → вызывает `buyer:changed  `            |
-| `order:payment`         | Кнопки способа оплаты в форме `Order`       | `buyer.setData({ payment })` → вызывает `buyer:changed `             |
-| `buyer:changed`          | `BuyerModel.setData()`| Обновить форму заказа (`payment`, `address`), вызвать `validateOrder()`. Обновить форму контактов (`email`, `phone`), вызвать `validateContacts()`   |
-| `order:submit` | Форма заказа (сабмит)                | Отрендерить форму контактов в модальное окно, открыть модальное окно           |
-| `contacts.email:change` | Поле email в форме `Contacts`             | `buyer.setData({ email: value })` → вызывает `buyer:changed`     |
-| `contacts.phone:change` | Поле телефона  в форме `Contacts`             | `buyer.setData({ phone: value })` → вызывает `buyer:changed`     |
-| `contacts:submit`       | Форма контактов (сабмит)   | `handleContactsSubmit()` — собрать данные заказа, отправить через `api.postOrder()`, показать экран успеха, очистить корзину и модель покупателя |
+| Событие                 | Источник                            | Действие                                                                                                                                           |
+| ----------------------- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `order.address:change`  | Поле адреса в форме `Order`         | `buyer.setData({ address: value })` → вызывает `buyer:changed`                                                                                     |
+| `order:payment`         | Кнопки способа оплаты в `Order`     | `buyer.setData({ payment })` → вызывает `buyer:changed`                                                                                            |
+| `buyer:changed`         | `Buyer.setData()` / `Buyer.clear()` | `validateOrder()` — `order.render({ valid, errors, payment, address })`; `validateContacts()` — `contacts.render({ valid, errors, email, phone })` |
+| `order:submit`          | Форма заказа (сабмит)               | `modal.render({ content: contacts.render() })` — отрендерить форму контактов, открыть модальное окно                                               |
+| `contacts.email:change` | Поле email в форме `Contacts`       | `buyer.setData({ email: value })` → вызывает `buyer:changed`                                                                                       |
+| `contacts.phone:change` | Поле телефона в `Contacts`          | `buyer.setData({ phone: value })` → вызывает `buyer:changed`                                                                                       |
+| `contacts:submit`       | Форма контактов (сабмит)            | `handleContactsSubmit()` — отправить заказ, `modal.render({ content: success.render(...) })`, очистить корзину и формы                             |
 
 ### Завершение
 
-| Событие         | Источник                       | Действие                                          |
-| --------------- | ------------------------------ | ------------------------------------------------- |
+| Событие         | Источник                    | Действие                                 |
+| --------------- | --------------------------- | ---------------------------------------- |
 | `success:close` | `Success` (кнопка закрытия) | `modal.close()` — закрыть модальное окно |

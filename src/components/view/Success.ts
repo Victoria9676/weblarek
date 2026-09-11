@@ -1,12 +1,13 @@
 import { Component } from "../base/Component";
 import { IEvents } from "../base/Events";
 import { ensureElement } from "../../utils/utils";
+import { ISuccessView } from "../../types";
 
 interface ISuccessData {
   total: number;
 }
 
-export class Success extends Component<ISuccessData> {
+export class Success extends Component<ISuccessData> implements ISuccessView {
   protected description: HTMLElement;
   protected closeButton: HTMLButtonElement;
 
@@ -24,7 +25,6 @@ export class Success extends Component<ISuccessData> {
       events.emit("success:close");
     });
   }
-
   set total(value: number) {
     this.description.textContent = `Списано ${value} синапсов`;
   }

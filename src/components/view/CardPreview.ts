@@ -1,8 +1,11 @@
 import { CardMedia } from "./CardMedia";
-import { ICardActions, TCardPreview } from "../../types";
+import { ICardActions, TCardPreview, ICardPreview } from "../../types";
 import { ensureElement } from "../../utils/utils";
 
-export class CardPreview extends CardMedia<TCardPreview> {
+export class CardPreview
+  extends CardMedia<TCardPreview>
+  implements ICardPreview
+{
   protected cardText: HTMLElement;
   protected cardButton: HTMLButtonElement;
 

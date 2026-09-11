@@ -58,13 +58,40 @@ export interface IProductsResponse {
 }
 
 export interface ICardActions {
-  onClick: (event: MouseEvent) => void;
+  onClick: (event?: MouseEvent) => void;
 }
 
-export interface IFormState {
+// --- Типы данных для render() каждого view ---
+export interface IPageHeaderData {
+  counter: number;
+}
+
+export interface IPageGalleryData {
+  catalog: HTMLElement[];
+}
+
+export interface IBasketData {
+  items: HTMLElement[];
+  total: number;
+  isOrderButtonEnabled: boolean;
+}
+
+export interface IOrderViewData {
+  payment: TPayment | "";
+  address: string;
   valid: boolean;
   errors: string;
-  payment: TPayment | "";
+}
+
+export interface IContactsViewData {
+  email: string;
+  phone: string;
+  valid: boolean;
+  errors: string;
+}
+
+export interface IModalData {
+  content: HTMLElement;
 }
 
 // --- Модели (интерфейсы для Presenter) ---
@@ -99,42 +126,31 @@ export interface ILarekApi {
   postOrder(data: IOrder): Promise<IOrderResult>;
 }
 
-// --- View (интерфейсы, от которых зависит Presenter) ---
+// --- View (интерфейсы, от которых зависит Presenter) — только render(data)---
 export interface IPageHeader {
-  counter: number;
+  render(data: Partial<IPageHeaderData>): HTMLElement;
 }
 
 export interface IPageGallery {
-  catalog: HTMLElement[];
+  render(data: Partial<IPageGalleryData>): HTMLElement;
 }
 
 export interface IModal {
-  content: HTMLElement;
+  render(data: Partial<IModalData>): HTMLElement;
   open(): void;
   close(): void;
 }
 
 export interface IBasketView {
-  items: HTMLElement[];
-  total: number;
-  isOrderButtonEnabled: boolean;
-  render(): HTMLElement;
+  render(data?: Partial<IBasketData>): HTMLElement;
 }
 
 export interface IOrderView {
-  payment: TPayment | "";
-  address: string;
-  valid: boolean;
-  errors: string;
-  render(): HTMLElement;
+  render(data?: Partial<IOrderViewData>): HTMLElement;
 }
 
 export interface IContactsView {
-  email: string;
-  phone: string;
-  valid: boolean;
-  errors: string;
-  render(): HTMLElement;
+  render(data?: Partial<IContactsViewData>): HTMLElement;
 }
 
 export interface ISuccessView {
@@ -144,4 +160,20 @@ export interface ISuccessView {
 // Карточки (только render, без состояния в презентере)
 export interface ICardPreview {
   render(data: TCardPreview): HTMLElement;
+}
+
+export interface ICardCatalogView {
+  render(data: TCardCatalog): HTMLElement;
+}
+
+export interface ICardBasketView {
+  render(data: TCardBasket): HTMLElement;
+}
+// --- Конструкторы карточек ---
+export interface ICardCatalogConstructor {
+  new (container: HTMLElement, actions: ICardActions): ICardCatalogView;
+}
+
+export interface ICardBasketConstructor {
+  new (container: HTMLElement, actions: ICardActions): ICardBasketView;
 }

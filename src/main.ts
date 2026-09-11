@@ -16,6 +16,8 @@ import { Success } from "./components/view/Success";
 import { CardPreview } from "./components/view/CardPreview";
 import { Presenter } from "./components/presenters/Presenter";
 import { API_URL } from "./utils/constants";
+import { CardCatalog } from "./components/view/CardCatalog";
+import { CardBasket } from "./components/view/CardBasket";
 
 const events = new EventEmitter();
 const api = new Api(API_URL);
@@ -54,6 +56,8 @@ const presenter = new Presenter(
   contacts,
   success,
   cardPreview,
+  CardCatalog,
+  CardBasket,
 );
 
 presenter.init().catch(console.error);

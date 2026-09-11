@@ -1,9 +1,9 @@
 import { Form } from "./Form";
-import { IFormState } from "../../types";
+import { IContactsViewData, IContactsView } from "../../types";
 import { IEvents } from "../base/Events";
 import { ensureElement } from "../../utils/utils";
 
-export class Contacts extends Form<IFormState> {
+export class Contacts extends Form<IContactsViewData> implements IContactsView {
   protected emailInput: HTMLInputElement;
   protected phoneInput: HTMLInputElement;
 

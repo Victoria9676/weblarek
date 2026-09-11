@@ -1,8 +1,8 @@
 import { Card } from "./Card";
-import { ICardActions, TCardBasket } from "../../types";
+import { ICardActions, TCardBasket, ICardBasketView } from "../../types";
 import { ensureElement } from "../../utils/utils";
 
-export class CardBasket extends Card<TCardBasket> {
+export class CardBasket extends Card<TCardBasket> implements ICardBasketView {
   protected cardIndex: HTMLElement;
   protected cardButton: HTMLButtonElement;
 
@@ -16,8 +16,8 @@ export class CardBasket extends Card<TCardBasket> {
       ".basket__item-delete",
       container,
     );
-    this.cardButton.addEventListener("click", (e: MouseEvent) => {
-      actions.onClick(e);
+    this.cardButton.addEventListener("click", () => {
+      actions.onClick();
     });
   }
 

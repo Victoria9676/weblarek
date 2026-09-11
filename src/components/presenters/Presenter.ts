@@ -13,11 +13,11 @@ import {
   ISuccessView,
   ICardPreview,
   TPayment,
+  ICardCatalogConstructor,
+  ICardBasketConstructor,
 } from "../../types";
 import { cloneTemplate } from "../../utils/utils";
 import { CDN_URL } from "../../utils/constants";
-import { CardCatalog } from "../view/CardCatalog";
-import { CardBasket } from "../view/CardBasket";
 
 export class Presenter {
   constructor(
@@ -34,6 +34,8 @@ export class Presenter {
     private contacts: IContactsView,
     private success: ISuccessView,
     private cardPreview: ICardPreview,
+    private CardCatalogClass: ICardCatalogConstructor,
+    private CardBasketClass: ICardBasketConstructor,
   ) {
     this.bindEvents();
   }
@@ -44,21 +46,12 @@ export class Presenter {
     this.events.on("catalog:changed", () => this.renderCatalog());
 
     this.events.on("basket:changed", () => {
-      this.pageHeader.counter = this.basket.getCount();
+      this.pageHeader.render({ counter: this.basket.getCount() });
       this.renderBasket();
     });
 
     this.events.on("buyer:changed", () => {
-      const data = this.buyer.getData();
-
-      // Перерисовка формы заказа
-      this.order.payment = data.payment ?? "";
-      this.order.address = data.address;
       this.validateOrder();
-
-      // Перерисовка формы контактов
-      this.contacts.email = data.email;
-      this.contacts.phone = data.phone;
       this.validateContacts();
     });
 
@@ -76,14 +69,16 @@ export class Presenter {
           : "Купить";
       const buttonDisabled = isUnavailable;
 
-      this.modal.content = this.cardPreview.render({
-        title: product.title,
-        description: product.description,
-        image: `${CDN_URL}${product.image}`,
-        category: product.category,
-        price: product.price,
-        buttonText,
-        buttonDisabled,
+      this.modal.render({
+        content: this.cardPreview.render({
+          title: product.title,
+          description: product.description,
+          image: `${CDN_URL}${product.image}`,
+          category: product.category,
+          price: product.price,
+          buttonText,
+          buttonDisabled,
+        }),
       });
       this.modal.open();
     });
@@ -110,7 +105,7 @@ export class Presenter {
     });
 
     this.events.on("basket:open", () => {
-      this.modal.content = this.basketView.render();
+      this.modal.render({ content: this.basketView.render() });
       this.modal.open();
     });
 
@@ -122,7 +117,7 @@ export class Presenter {
     });
 
     this.events.on("basket:order", () => {
-      this.modal.content = this.order.render();
+      this.modal.render({ content: this.order.render() });
       this.modal.open();
     });
 
@@ -135,7 +130,7 @@ export class Presenter {
     });
 
     this.events.on("order:submit", () => {
-      this.modal.content = this.contacts.render();
+      this.modal.render({ content: this.contacts.render() });
       this.modal.open();
     });
 
@@ -170,7 +165,7 @@ export class Presenter {
   private renderCatalog(): void {
     const cards = this.catalog.getProducts().map((product) => {
       const cardContainer = cloneTemplate("#card-catalog");
-      const card = new CardCatalog(cardContainer, {
+      const card = new this.CardCatalogClass(cardContainer, {
         onClick: () => this.events.emit("card:select", { id: product.id }),
       });
       return card.render({
@@ -180,13 +175,13 @@ export class Presenter {
         image: `${CDN_URL}${product.image}`,
       });
     });
-    this.pageGallery.catalog = cards;
+    this.pageGallery.render({ catalog: cards });
   }
 
   private renderBasket(): void {
     const items = this.basket.getItems().map((product, index) => {
       const cardContainer = cloneTemplate("#card-basket");
-      const card = new CardBasket(cardContainer, {
+      const card = new this.CardBasketClass(cardContainer, {
         onClick: () => this.events.emit("card:delete", { id: product.id }),
       });
       return card.render({
@@ -195,25 +190,50 @@ export class Presenter {
         price: product.price,
       });
     });
-    this.basketView.items = items;
-    this.basketView.total = this.basket.getTotal();
-    this.basketView.isOrderButtonEnabled = items.length > 0;
+    this.basketView.render({
+      items,
+      total: this.basket.getTotal(),
+      isOrderButtonEnabled: items.length > 0,
+    });
   }
 
   private validateOrder(): void {
     const errors = this.buyer.validate();
-    this.order.valid = !errors.payment && !errors.address;
-    this.order.errors = [errors.payment, errors.address]
-      .filter(Boolean)
-      .join("; ");
+    const data = this.buyer.getData();
+    this.order.render({
+      valid: !errors.payment && !errors.address,
+      errors: [errors.payment, errors.address].filter(Boolean).join("; "),
+      payment: data.payment ?? "",
+      address: data.address,
+    });
   }
 
   private validateContacts(): void {
     const errors = this.buyer.validate();
-    this.contacts.valid = !errors.email && !errors.phone;
-    this.contacts.errors = [errors.email, errors.phone]
-      .filter(Boolean)
-      .join("; ");
+    const data = this.buyer.getData();
+    this.contacts.render({
+      valid: !errors.email && !errors.phone,
+      errors: [errors.email, errors.phone].filter(Boolean).join("; "),
+      email: data.email,
+      phone: data.phone,
+    });
+  }
+
+  private resetForms(): void {
+    this.buyer.clear();
+    this.order.render({
+      payment: "",
+      address: "",
+      valid: false,
+      errors: "",
+    });
+
+    this.contacts.render({
+      email: "",
+      phone: "",
+      valid: false,
+      errors: "",
+    });
   }
 
   private async handleContactsSubmit(): Promise<void> {
@@ -225,9 +245,11 @@ export class Presenter {
 
     try {
       const result = await this.api.postOrder(orderData);
-      this.modal.content = this.success.render({ total: result.total });
+      this.modal.render({
+        content: this.success.render({ total: result.total }),
+      });
       this.basket.clear();
-      this.buyer.clear();
+      this.resetForms();
     } catch (error) {
       console.error(error);
     }

@@ -1,11 +1,11 @@
 import { Component } from "../base/Component";
 import { ensureElement } from "../../utils/utils";
+import { IPageGallery, IPageGalleryData } from "../../types";
 
-interface IPageData {
-  catalog: HTMLElement[];
-}
-
-export class PageGallery extends Component<IPageData> {
+export class PageGallery
+  extends Component<IPageGalleryData>
+  implements IPageGallery
+{
   protected pageGallery: HTMLElement;
 
   constructor(container: HTMLElement) {

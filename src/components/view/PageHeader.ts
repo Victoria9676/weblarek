@@ -1,12 +1,12 @@
 import { Component } from "../base/Component";
 import { IEvents } from "../base/Events";
 import { ensureElement } from "../../utils/utils";
+import { IPageHeader, IPageHeaderData } from "../../types";
 
-interface IPageData {
-  counter: number;
-}
-
-export class PageHeader extends Component<IPageData> {
+export class PageHeader
+  extends Component<IPageHeaderData>
+  implements IPageHeader
+{
   protected pageCounter: HTMLElement;
   protected basketButton: HTMLButtonElement;
 
